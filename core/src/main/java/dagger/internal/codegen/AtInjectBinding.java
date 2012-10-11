@@ -122,4 +122,8 @@ final class AtInjectBinding extends Binding<Object> {
       get.add(binding);
     }
   }
+
+  @Override public int getType() {
+    return AT_INJECT;
+  }
 }

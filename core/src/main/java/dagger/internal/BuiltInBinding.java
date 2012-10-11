@@ -49,4 +49,8 @@ final class BuiltInBinding<T> extends Binding<T> {
   @Override public void getDependencies(Set<Binding<?>> get, Set<Binding<?>> injectMembers) {
     // We don't add 'delegate' because it isn't actually used by get() or injectMembers().
   }
+
+  @Override public int getType() {
+    return BUILT_IN;
+  }
 }

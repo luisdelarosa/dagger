@@ -174,6 +174,10 @@ public final class FullGraphProcessor extends AbstractProcessor {
         get.add(binding);
       }
     }
+
+    @Override public int getType() {
+      return PROVIDER_METHOD;
+    }
   }
 
   void writeDotFile(TypeElement module, Map<String, Binding<?>> bindings) throws IOException {
@@ -184,7 +188,7 @@ public final class FullGraphProcessor extends AbstractProcessor {
 
     Writer writer = resource.openWriter();
     DotWriter dotWriter = new DotWriter(writer);
-    new GraphVisualizer().write(bindings, dotWriter);
+    new GraphVisualizer(dotWriter).write(bindings);
     dotWriter.close();
   }
 }

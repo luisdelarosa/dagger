@@ -15,6 +15,8 @@
  */
 package dagger.internal;
 
+import dagger.internal.codegen.DotWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +26,9 @@ import org.junit.Test;
 import static org.fest.assertions.Assertions.assertThat;
 
 public final class GraphVisualizerTest {
-  private final GraphVisualizer graphVisualizer = new GraphVisualizer();
+  private final StringWriter writer = new StringWriter();
+  private final DotWriter dotWriter = new DotWriter(writer);
+  private final GraphVisualizer graphVisualizer = new GraphVisualizer(dotWriter);
 
   String simpleKey;
   @Test public void testSimpleKey() throws Exception {

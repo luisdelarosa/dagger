@@ -130,6 +130,10 @@ final class AtInjectBinding<T> extends Binding<T> {
     }
   }
 
+  @Override public int getType() {
+    return AT_INJECT;
+  }
+
   @Override public String toString() {
     return provideKey != null ? provideKey : membersKey;
   }

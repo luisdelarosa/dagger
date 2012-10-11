@@ -68,6 +68,10 @@ final class ProviderMethodBinding<T> extends Binding<T> {
     }
   }
 
+  @Override public int getType() {
+    return PROVIDER_METHOD;
+  }
+
   @Override public String toString() {
     return method.toString();
   }

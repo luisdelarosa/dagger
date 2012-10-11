@@ -25,6 +25,11 @@ import javax.inject.Provider;
 public class Binding<T> implements Provider<T>, MembersInjector<T> {
   public static final Binding<Object> UNRESOLVED = new Binding<Object>(null, null, false, null);
 
+  public static final int AT_INJECT = 0;
+  public static final int PROVIDER_METHOD = 1;
+  public static final int BUILT_IN = 2;
+  public static final int LAZY = 3;
+
   /** Set if the provided instance is always the same object. */
   private static final int SINGLETON = 1 << 0;
 
@@ -84,6 +89,14 @@ public class Binding<T> implements Provider<T>, MembersInjector<T> {
    *     injectMembers} method.
    */
   public void getDependencies(Set<Binding<?>> getBindings, Set<Binding<?>> injectMembersBindings) {
+    throw new UnsupportedOperationException(getClass().getName());
+  }
+
+  /**
+   * Returns the type of this binding, like {@link #AT_INJECT} or {@link
+   * #PROVIDER_METHOD}.
+   */
+  public int getType() {
     throw new UnsupportedOperationException(getClass().getName());
   }
 

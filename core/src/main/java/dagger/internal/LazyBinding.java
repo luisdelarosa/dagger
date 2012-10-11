@@ -57,8 +57,16 @@ final class LazyBinding<T> extends Binding<Lazy<T>> {
     };
   }
 
+  public Binding<T> getDelegate() {
+    return delegate;
+  }
+
   @Override public void getDependencies(
       Set<Binding<?>> getBindings, Set<Binding<?>> injectMembersBindings) {
     // We don't add 'delegate' because it isn't actually used by get() or injectMembers().
+  }
+
+  @Override public int getType() {
+    return LAZY;
   }
 }

@@ -258,6 +258,10 @@ public abstract class Linker {
       binding.getDependencies(get, injectMembers);
     }
 
+    @Override public int getType() {
+      return binding.getType();
+    }
+
     @Override public String toString() {
       return "@Singleton/" + binding.toString();
     }

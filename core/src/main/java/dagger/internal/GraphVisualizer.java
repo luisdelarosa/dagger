@@ -17,8 +17,11 @@ package dagger.internal;
 
 import dagger.internal.codegen.DotWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -42,24 +45,84 @@ public final class GraphVisualizer {
       + "((\\[\\])*)"     // Arrays. Group 4.
       + "");
 
-  public void write(Map<String, Binding<?>> bindings, DotWriter writer) throws IOException {
-    Map<Binding<?>, String> namesIndex = buildNamesIndex(bindings);
+  private final DotWriter writer;
+  private Map<Binding<?>, String> bindingToShortName;
+  private final Set<Binding<?>> writtenNodes = new LinkedHashSet<Binding<?>>();
+
+  public GraphVisualizer(DotWriter writer) {
+    this.writer = writer;
+  }
+
+  public void write(Map<String, Binding<?>> bindings) throws IOException {
+    buildNamesIndex(bindings);
 
     writer.beginGraph("concentrate", "true");
-    for (Map.Entry<Binding<?>, String> entry : namesIndex.entrySet()) {
-      Binding<?> sourceBinding = entry.getKey();
-      String sourceName = entry.getValue();
-      Set<Binding<?>> dependencies = new HashSet<Binding<?>>();
-      sourceBinding.getDependencies(dependencies, dependencies);
-      for (Binding<?> targetBinding : dependencies) {
-        String targetName = namesIndex.get(targetBinding);
-        writer.edge(sourceName, targetName);
-      }
+    writer.nodeDefaults("shape", "box");
+    for (Map.Entry<Binding<?>, String> entry : bindingToShortName.entrySet()) {
+      writeBinding(entry);
     }
     writer.endGraph();
   }
 
+  private void writeBinding(Map.Entry<Binding<?>, String> entry) throws IOException {
+    Binding<?> source = entry.getKey();
+    Set<Binding<?>> dependencies = new HashSet<Binding<?>>();
+    source.getDependencies(dependencies, dependencies);
+
+    for (Binding<?> targetBinding : dependencies) {
+      writeEdge(writer, bindingToShortName, source, targetBinding);
+    }
+  }
+
+  private void writeEdge(DotWriter writer, Map<Binding<?>, String> namesIndex,
+      Binding<?> source, Binding<?> target) throws IOException {
+    List<String> attributes = new ArrayList<String>();
+
+    if (target instanceof BuiltInBinding) {
+      target = ((BuiltInBinding<?>) target).getDelegate();
+      attributes.add("style");
+      attributes.add("dashed");
+    } else if (target instanceof LazyBinding) {
+      target = ((LazyBinding<?>) target).getDelegate();
+      attributes.add("style");
+      attributes.add("dashed");
+    }
+
+    String sourceName = namesIndex.get(source);
+    String targetName = namesIndex.get(target);
+
+    writeNode(sourceName, source);
+    writeNode(targetName, target);
+
+    writer.edge(sourceName, targetName, attributes.toArray(new String[attributes.size()]));
+  }
+
+  private void writeNode(String name, Binding<?> node) throws IOException {
+    if (!writtenNodes.add(node)) return;
+
+    List<String> attributes = new ArrayList<String>();
+
+    if (node.getType() == Binding.AT_INJECT) {
+      attributes.add("color");
+      attributes.add("royalblue3");
+    } else if (node.getType() == Binding.PROVIDER_METHOD) {
+      attributes.add("color");
+      attributes.add("darkgreen");
+    }
+
+    if (node.isSingleton()) {
+      attributes.add("style");
+      attributes.add("setlinewidth(3)");
+    }
+
+    if (!attributes.isEmpty()) {
+      writer.node(name, attributes.toArray(new String[attributes.size()]));
+    }
+  }
+
   private Map<Binding<?>, String> buildNamesIndex(Map<String, Binding<?>> bindings) {
+    if (bindingToShortName != null) throw new IllegalStateException();
+
     // Optimistically shorten each binding to the class short name; remembering collisions.
     Map<String, Binding<?>> shortNameToBinding = new TreeMap<String, Binding<?>>();
     Set<Binding<?>> collisions = new HashSet<Binding<?>>();
@@ -86,12 +149,12 @@ public final class GraphVisualizer {
     }
 
     // Reverse the map.
-    Map<Binding<?>, String> bindingToName = new LinkedHashMap<Binding<?>, String>();
+    bindingToShortName = new LinkedHashMap<Binding<?>, String>();
     for (Map.Entry<String, Binding<?>> entry : shortNameToBinding.entrySet()) {
-      bindingToName.put(entry.getValue(), entry.getKey());
+      bindingToShortName.put(entry.getValue(), entry.getKey());
     }
 
-    return bindingToName;
+    return bindingToShortName;
   }
 
   String shortName(String key) {
